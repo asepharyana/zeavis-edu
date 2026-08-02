@@ -32,21 +32,21 @@ services:
       - app-shared-net
       - telemetry-net
     ports:
-      - "${TS_IP:-0.0.0.0}:3000:3000"
+      - "${TS_IP:-0.0.0.0}:4006:4006"
     env_file:
       - .env
     environment:
       NODE_ENV: production
-      API_PORT: "3000"
+      API_PORT: "4006"
       WEB_APP_URL: https://zeavisedu.asepharyana.my.id
-      ML_SERVICE_URL: ${ML_SERVICE_URL:-http://zeavis-ml:8000}
+      ML_SERVICE_URL: ${ML_SERVICE_URL:-http://zeavis-ml:4012}
     labels:
       traefik.enable: "true"
       traefik.http.routers.zeavis-api.rule: Host(`api-zeavisedu.asepharyana.my.id`)
       traefik.http.routers.zeavis-api.entrypoints: websecure
       traefik.http.routers.zeavis-api.tls: "true"
       traefik.http.routers.zeavis-api.tls.certresolver: cloudflare
-      traefik.http.services.zeavis-api.loadbalancer.server.port: "3000"
+      traefik.http.services.zeavis-api.loadbalancer.server.port: "4006"
 
   # Node Exporter — expose system metrics (CPU, RAM, disk) for Prometheus scraping
   node_exporter:
@@ -73,7 +73,7 @@ services:
       - app-shared-net
       - telemetry-net
     ports:
-      - "${TS_IP:-0.0.0.0}:8000:8000"
+      - "${TS_IP:-0.0.0.0}:4012:4012"
     env_file:
       - .env
     environment:
@@ -85,4 +85,4 @@ services:
       traefik.http.routers.zeavis-ml.entrypoints: websecure
       traefik.http.routers.zeavis-ml.tls: "true"
       traefik.http.routers.zeavis-ml.tls.certresolver: cloudflare
-      traefik.http.services.zeavis-ml.loadbalancer.server.port: "8000"
+      traefik.http.services.zeavis-ml.loadbalancer.server.port: "4012"

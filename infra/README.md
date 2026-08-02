@@ -29,7 +29,7 @@ ZeaVis Edu berjalan di **dua VPS terpisah** yang terhubung melalui **Tailscale**
 │                                             │     │                                              │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  │     │  ┌──────────┐  ┌──────────────┐             │
 │  │  Web     │  │  API     │  │  ML      │  │     │  │Prometheus│  │Metric        │             │
-│  │:80       │  │:3000     │  │:8000     │  │     │  │:9090     │  │Ingester      │             │
+│  │:80       │  │:4006     │  │:4012     │  │     │  │:9090     │  │Ingester      │             │
 │  │/metrics  │  │/metrics  │  │/metrics  │  │     │  │          │  │:9091         │             │
 │  └──────────┘  └──────────┘  └──────────┘  │     │  └────┬─────┘  └──────┬───────┘             │
 │  ┌──────────────────────────────────────┐  │     │       │               │                     │
@@ -65,7 +65,7 @@ ZeaVis Edu berjalan di **dua VPS terpisah** yang terhubung melalui **Tailscale**
 
 | VPS | Hostname | OS | Peran |
 |---|---|---|---|
-| **App VPS** | `imrnes` | Arch Linux | Web (:80), API (:3000), ML Service (:8000) |
+| **App VPS** | `imrnes` | Arch Linux | Web (:80), API (:4006), ML Service (:4012) |
 | **Telemetry VPS** | `orange` | Ubuntu | Prometheus, ClickHouse, Telemetry UI |
 
 ---
@@ -128,8 +128,8 @@ bash clickhouse/init.sh
 | Port | Service | Akses |
 |---|---|---|
 | 80/443 | Web (via Traefik/Coolify) | Public |
-| 3000 | API metrics | Tailscale-only |
-| 8000 | ML service metrics | Tailscale-only |
+| 4006 | API metrics | Tailscale-only |
+| 4012 | ML service metrics | Tailscale-only |
 | 9100 | Node Exporter | Tailscale-only |
 
 ### Telemetry VPS (orange)

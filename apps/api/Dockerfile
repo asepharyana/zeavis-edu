@@ -11,7 +11,7 @@ RUN bun install --production
 FROM oven/bun:1.3.14 AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV API_PORT=3000
+ENV API_PORT=4006
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/api/node_modules apps/api/node_modules
@@ -20,5 +20,5 @@ COPY package.json bunfig.toml tsconfig.base.json ./
 COPY apps/api apps/api
 COPY packages/shared packages/shared
 
-EXPOSE 3000
+EXPOSE 4006
 CMD ["bun", "apps/api/src/index.ts"]

@@ -225,25 +225,25 @@ export function TelemetryPage() {
         queryInstant(`rate(node_network_receive_bytes_total{instance="${INST}:9100",device="eth0"}[5m])`),
         queryInstant(`rate(node_network_transmit_bytes_total{instance="${INST}:9100",device="eth0"}[5m])`),
         // API
-        queryInstant(`zeavis_api_http_requests_total{instance="${INST}:3000"}`),
-        queryInstant(`zeavis_api_http_requests_active{instance="${INST}:3000"}`),
-        queryInstant(`zeavis_api_http_request_duration_seconds_sum{instance="${INST}:3000"} / zeavis_api_http_request_duration_seconds_count{instance="${INST}:3000"}`),
-        queryRange(`zeavis_api_http_requests_total{instance="${INST}:3000"}`, 60),
-        queryRange(`zeavis_api_http_request_duration_seconds_sum{instance="${INST}:3000"} / zeavis_api_http_request_duration_seconds_count{instance="${INST}:3000"}`, 60),
+        queryInstant(`zeavis_api_http_requests_total{instance="${INST}:4006"}`),
+        queryInstant(`zeavis_api_http_requests_active{instance="${INST}:4006"}`),
+        queryInstant(`zeavis_api_http_request_duration_seconds_sum{instance="${INST}:4006"} / zeavis_api_http_request_duration_seconds_count{instance="${INST}:4006"}`),
+        queryRange(`zeavis_api_http_requests_total{instance="${INST}:4006"}`, 60),
+        queryRange(`zeavis_api_http_request_duration_seconds_sum{instance="${INST}:4006"} / zeavis_api_http_request_duration_seconds_count{instance="${INST}:4006"}`, 60),
         // ML
         queryInstant(`zeavis_ml_zeavis_ml_model_load_status{instance="${INST}:8000"}`),
         // NodeJS
-        queryInstant(`nodejs_heap_size_used_bytes{instance="${INST}:3000"}`),
-        queryInstant(`nodejs_heap_size_total_bytes{instance="${INST}:3000"}`),
-        queryInstant(`nodejs_eventloop_lag_seconds{instance="${INST}:3000"}`),
-        queryInstant(`nodejs_active_handles_total{instance="${INST}:3000"}`),
-        queryInstant(`nodejs_active_requests_total{instance="${INST}:3000"}`),
-        queryRange(`nodejs_heap_size_used_bytes{instance="${INST}:3000"}`, 60),
-        queryRange(`nodejs_eventloop_lag_seconds{instance="${INST}:3000"}`, 60),
+        queryInstant(`nodejs_heap_size_used_bytes{instance="${INST}:4006"}`),
+        queryInstant(`nodejs_heap_size_total_bytes{instance="${INST}:4006"}`),
+        queryInstant(`nodejs_eventloop_lag_seconds{instance="${INST}:4006"}`),
+        queryInstant(`nodejs_active_handles_total{instance="${INST}:4006"}`),
+        queryInstant(`nodejs_active_requests_total{instance="${INST}:4006"}`),
+        queryRange(`nodejs_heap_size_used_bytes{instance="${INST}:4006"}`, 60),
+        queryRange(`nodejs_eventloop_lag_seconds{instance="${INST}:4006"}`, 60),
         // Process
-        queryInstant(`rate(process_cpu_seconds_total{instance="${INST}:3000"}[5m])`),
-        queryInstant(`process_resident_memory_bytes{instance="${INST}:3000"}`),
-        queryInstant(`process_open_fds{instance="${INST}:3000"}`),
+        queryInstant(`rate(process_cpu_seconds_total{instance="${INST}:4006"}[5m])`),
+        queryInstant(`process_resident_memory_bytes{instance="${INST}:4006"}`),
+        queryInstant(`process_open_fds{instance="${INST}:4006"}`),
       ]);
 
       setCpuData(cpuR); setMemData(memR); setDiskData(diskR);

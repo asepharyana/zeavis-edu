@@ -10,15 +10,15 @@ application stack and the payload each service provides.
 | Service               | Host (prod)                       | Metrics Endpoint           | Port (local) |
 |-----------------------|-----------------------------------|----------------------------|--------------|
 | Web (Vite dev)        | `zeavisedu.asepharyana.my.id`     | `GET /metrics`             | 5173         |
-| API (Elysia)          | `api-zeavisedu.asepharyana.my.id`   | `GET /metrics`           | 3000         |
-| ML Service (Axum)     | `ml-zeavisedu.asepharyana.my.id`    | `GET /metrics`           | 8000         |
+| API (Elysia)          | `api-zeavisedu.asepharyana.my.id`   | `GET /metrics`           | 4006         |
+| ML Service (Axum)     | `ml-zeavisedu.asepharyana.my.id`    | `GET /metrics`           | 4012         |
 | Prometheus Collector  | —                                 | `GET /metrics` (self)      | 9090         |
 
 > In production all metrics are scraped by the Prometheus collector running in the
 > Telemetry stack on a **separate VPS** connected via **Tailscale**.
 > See [`telemetry/prometheus/targets/`](./telemetry/prometheus/targets/)
 > for the auto‑discovery configuration. Target files must use **Tailscale IPs**
-> (e.g. `100.x.x.a:3000`), not Docker hostnames, because the services are on
+> (e.g. `100.x.x.a:4006`), not Docker hostnames, because the services are on
 > different hosts.
 >
 > In production (nginx), the web app proxies `/metrics` to the API service:
@@ -101,11 +101,11 @@ The Telemetry submodule includes a Prometheus instance that uses
 ```json
 [
   {
-    "targets": ["100.x.x.a:3000"],
+    "targets": ["100.x.x.a:4006"],
     "labels": { "service": "zeavis-api", "component": "backend", "env": "production" }
   },
   {
-    "targets": ["100.x.x.b:8000"],
+    "targets": ["100.x.x.b:4012"],
     "labels": { "service": "zeavis-ml", "component": "inference", "env": "production" }
   }
 ]
@@ -113,7 +113,7 @@ The Telemetry submodule includes a Prometheus instance that uses
 
 > ⚠️ **Cross-VPS:** Gunakan **IP Tailscale** (bukan Docker hostname) karena
 > Prometheus dan ZeaVis Edu berjalan di VPS berbeda. Pastikan port service
-> (`:3000`, `:8000`) terekspos di `0.0.0.0` atau diizinkan oleh aturan
+> (`:4006`, `:4012`) terekspos di `0.0.0.0` atau diizinkan oleh aturan
 > `iptables`/`ufw` untuk interface Tailscale (`tailscale0`/`100.x.x.x/10`).
 
 The Prometheus config (in `telemetry/prometheus/prometheus.yml`) will

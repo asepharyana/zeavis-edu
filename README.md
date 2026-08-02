@@ -209,7 +209,7 @@ bun install
 bun run dev                # Semua service (web + api)
 cd apps/web && bun run dev # Hanya frontend
 cd apps/api && bun run start # Hanya backend API
-cd apps/ml-service && cargo run  # ML inference engine (port 8000)
+cd apps/ml-service && cargo run  # ML inference engine (port 4012)
 cd apps/tauri && bun run tauri dev        # Tauri desktop dev
 cd apps/tauri && bun run tauri android dev  # Tauri Android dev
 ```

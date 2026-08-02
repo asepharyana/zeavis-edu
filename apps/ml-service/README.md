@@ -48,7 +48,7 @@ Output build lokal berada di `target/` dan direktori tersebut diabaikan oleh Git
 
 Semua perintah di bawah dijalankan dari direktori `apps/ml-service`.
 
-### Opsi 1: Default (Port 8000)
+### Opsi 1: Default (Port 4012)
 
 ```bash
 cargo run
@@ -91,7 +91,7 @@ ML_SERVICE_PORT=9000 MODEL_PATH=/path/to/model.onnx cargo run
 ### Health Check
 
 ```bash
-curl http://localhost:8000/health
+curl http://localhost:4012/health
 ```
 
 ```json
@@ -104,7 +104,7 @@ curl http://localhost:8000/health
 ### Metadata
 
 ```bash
-curl http://localhost:8000/metadata
+curl http://localhost:4012/metadata
 ```
 
 ```json
@@ -123,7 +123,7 @@ curl http://localhost:8000/metadata
 Upload gambar daun jagung untuk klasifikasi:
 
 ```bash
-curl -X POST http://localhost:8000/predict \
+curl -X POST http://localhost:4012/predict \
   -F "file=@/path/to/corn-leaf.jpg"
 ```
 
@@ -164,13 +164,13 @@ cargo test
 cargo run
 
 # 2. Health check
-curl http://localhost:8000/health
+curl http://localhost:4012/health
 
 # 3. Metadata
-curl http://localhost:8000/metadata
+curl http://localhost:4012/metadata
 
 # 4. Prediksi
-curl -X POST http://localhost:8000/predict \
+curl -X POST http://localhost:4012/predict \
   -F "file=@../../Machine_Learning/dataset/Daun\ Sehat/sample.jpg"
 ```
 
@@ -182,7 +182,7 @@ Service dapat di-deploy via Docker. Build dari root repository karena Dockerfile
 
 ```bash
 docker build -f apps/ml-service/Dockerfile -t zeavis-ml-service .
-docker run -p 8000:8000 zeavis-ml-service
+docker run -p 8000:4012 zeavis-ml-service
 ```
 
 Pastikan `Machine_Learning/model/model.onnx` sudah dibuat sebelum build image.
@@ -210,7 +210,7 @@ MODEL_PATH=/absolute/path/to/model.onnx cargo run
 ```bash
 ML_SERVICE_PORT=9000 cargo run
 # Cek port yang digunakan:
-lsof -i :8000
+lsof -i :4012
 ```
 
 ### ONNX Runtime tidak kompatibel

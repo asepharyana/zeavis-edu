@@ -66,7 +66,7 @@ WRAPPER
 export MODEL_PATH="$out/share/zeavis-ml/model.onnx"
 export MODEL_INPUT_SIZE="224"
 export ML_SERVICE_HOST="0.0.0.0"
-export ML_SERVICE_PORT="8200"
+export ML_SERVICE_PORT="4012"
 export RUST_LOG="info"
 exec $out/bin/.zeavis-ml-service
 WRAPPER
@@ -99,13 +99,13 @@ http {
   include ${pkgs.nginx}/conf/mime.types;
   access_log /var/lib/zeavis-web/nginx-access.log;
   server {
-    listen 8088;
+    listen 4011;
     server_name _;
     root $out/share/zeavis-web/html;
     index index.html;
 
     location /api/ {
-      proxy_pass http://127.0.0.1:3200/api/;
+      proxy_pass http://127.0.0.1:4006/api/;
       proxy_set_header Host \$host;
       proxy_set_header X-Real-IP \$remote_addr;
       proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -113,7 +113,7 @@ http {
     }
 
     location /metrics {
-      proxy_pass http://127.0.0.1:3200/metrics;
+      proxy_pass http://127.0.0.1:4006/metrics;
       proxy_set_header Host \$host;
       proxy_set_header X-Real-IP \$remote_addr;
       proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;

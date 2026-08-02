@@ -18,7 +18,7 @@ const allowedOrigins = [
 const secureCookies = Bun.env.SECURE_COOKIES === 'true' || webAppUrl.startsWith('https://');
 
 export const env = {
-  port: Number(Bun.env.API_PORT ?? 3000),
+  port: Number(Bun.env.API_PORT ?? 4006),
   databaseUrl: Bun.env.DATABASE_URL,
   sessionSecret: Bun.env.SESSION_SECRET,
   uploaderBaseUrl: Bun.env.UPLOADER_BASE_URL ?? 'https://upload.asepharyana.my.id',
