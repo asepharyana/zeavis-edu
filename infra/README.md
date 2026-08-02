@@ -24,7 +24,7 @@ ZeaVis Edu berjalan di **dua VPS terpisah** yang terhubung melalui **Tailscale**
 ```
 ┌─────────────────────────────────────────────┐     ┌──────────────────────────────────────────────┐
 │              App VPS (imrnes)               │     │         Telemetry VPS (orange)                │
-│             100.108.1.124                   │     │         100.96.248.86                        │
+│             100.121.180.82                   │     │         100.96.248.86                        │
 │             Arch Linux                      │     │         Ubuntu                               │
 │                                             │     │                                              │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  │     │  ┌──────────┐  ┌──────────────┐             │
@@ -76,7 +76,7 @@ ZeaVis Edu berjalan di **dua VPS terpisah** yang terhubung melalui **Tailscale**
 
 | Secret | Keterangan |
 |---|---|
-| `VPS_HOST` | `100.108.1.124` (imrnes) |
+| `VPS_HOST` | `100.121.180.82` (imrnes) |
 | `VPS_USER` | `mytheclipse` |
 | `VPS_SSH_KEY` | Private SSH key untuk imrnes |
 | `VPS_PORT` | `22` |
@@ -97,7 +97,7 @@ ZeaVis Edu berjalan di **dua VPS terpisah** yang terhubung melalui **Tailscale**
 
 ## 3. Setup VPS
 
-### App VPS (imrnes — 100.108.1.124)
+### App VPS (imrnes — 100.121.180.82)
 
 ```bash
 # Create Docker network
@@ -149,7 +149,7 @@ bash clickhouse/init.sh
 ## 5. Metrics Flow
 
 1. **App services** mengekspos `GET /metrics` di port masing-masing
-2. **Prometheus** di orange VPS scrape via Tailscale IP (`100.108.1.124:PORT`)
+2. **Prometheus** di orange VPS scrape via Tailscale IP (`100.121.180.82:PORT`)
 3. Prometheus forward ke **Metric Ingester** via `remote_write`
 4. Metric Ingester enrich → filter → forward ke **Vector**
 5. Vector buffer → write ke **ClickHouse**
