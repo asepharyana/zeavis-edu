@@ -82,3 +82,7 @@ Manual verification for the initial implementation:
 - Call `POST /predict` with a real image file when an example corn leaf image is available.
 
 The repository does not currently have a Python test suite for this new service. Automated tests can be added later if the service grows beyond the initial capstone scope.
+
+---
+
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.

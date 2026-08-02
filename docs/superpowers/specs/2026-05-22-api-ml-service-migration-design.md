@@ -99,3 +99,7 @@ Required verification after implementation:
 - Exercise `classifyImage(file)` against the running ML service with a local image file or synthetic image and confirm it returns `predictedDiseaseSlug`, `confidence`, and sorted probabilities.
 
 If full API route testing is blocked by external database or upload service requirements, report that explicitly and include the lower-level verification evidence.
+
+---
+
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.

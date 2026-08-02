@@ -283,3 +283,7 @@ Manual error path:
 2. Call a diagnosis endpoint while logged out and confirm unauthorized response.
 3. Access expert review as a non-expert and confirm forbidden response.
 4. Temporarily omit Google OAuth env and confirm Google login is hidden.
+
+---
+
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.

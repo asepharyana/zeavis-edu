@@ -581,3 +581,7 @@ Verified:
 ```
 
 Expected: final response only claims checks that were actually run.
+
+---
+
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.

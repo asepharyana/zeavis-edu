@@ -143,6 +143,8 @@ The repository has no existing global test suite, so the Rust service checks bec
 
 ## Documentation and deployment updates
 
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.
+
 Update documentation so runtime serving no longer describes FastAPI/TensorFlow as the production ML service. Keep Python/TensorFlow documentation for training and export.
 
 Update:

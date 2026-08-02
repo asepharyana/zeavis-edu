@@ -68,3 +68,7 @@ The implementation should pass:
 - `bun run build`
 
 Because this includes frontend behavior, the app should also be launched locally and the main pages/manual flow should be checked in a browser if the environment allows it.
+
+---
+
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.

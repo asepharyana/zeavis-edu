@@ -532,3 +532,7 @@ Verified:
 - ML service health: <actual result if run>
 - classifyImage against running ML service: <actual result if run>
 ```
+
+---
+
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.

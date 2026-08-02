@@ -220,6 +220,8 @@ curl -X POST http://localhost:8001/predict -F "file=@/path/to/corn-leaf.jpg"
 
 ## Docker Deployment
 
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.
+
 File `docker-compose.yml` di root menyiapkan tiga service produksi:
 
 - `web` untuk frontend

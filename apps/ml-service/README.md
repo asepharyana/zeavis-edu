@@ -59,7 +59,7 @@ Service akan mencari model di path default:
 ../../Machine_Learning/model/model.onnx
 ```
 
-### Opsi 2: Local Development dengan .env.example (Port 8001)
+### Opsi 2: Local Development dengan .env.example (Port 4012)
 
 ```bash
 source .env.example

@@ -289,6 +289,8 @@ git commit -m "feat: add ML service Docker image"
 
 ## Task 5: Add production Docker Compose
 
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.
+
 **Files:**
 - Create: `docker-compose.yml`
 

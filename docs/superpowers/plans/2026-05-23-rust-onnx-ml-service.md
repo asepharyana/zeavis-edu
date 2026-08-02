@@ -1474,6 +1474,8 @@ git commit -m "test: add ONNX parity validation script"
 
 ## Task 10: Update Docker image for Rust ML service
 
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.
+
 **Files:**
 - Modify: `apps/ml-service/Dockerfile`
 

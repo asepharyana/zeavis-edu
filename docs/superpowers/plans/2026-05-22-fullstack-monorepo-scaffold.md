@@ -1323,3 +1323,7 @@ git commit -m "Document fullstack app commands"
 - Placeholder scan: no TBD/TODO placeholders are present; deferred features are explicitly listed in the design and not implemented.
 - Type consistency: `AppStatus`, `createAppStatus`, route paths, package names, and project paths are consistent across tasks.
 - Known execution note: Task 4 requires adding `@radix-ui/react-slot` because the shadcn-style `Button` uses `Slot` for `asChild` support.
+
+---
+
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.

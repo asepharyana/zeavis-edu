@@ -18,7 +18,7 @@ application stack and the payload each service provides.
 > Telemetry stack on a **separate VPS** connected via **Tailscale**.
 > See [`telemetry/prometheus/targets/`](./telemetry/prometheus/targets/)
 > for the auto‑discovery configuration. Target files must use **Tailscale IPs**
-> (e.g. `100.x.x.a:4006`), not Docker hostnames, because the services are on
+> (e.g. `100.121.180.82:4006`), not Docker hostnames, because the services are on
 > different hosts.
 >
 > In production (nginx), the web app proxies `/metrics` to the API service:
@@ -101,11 +101,11 @@ The Telemetry submodule includes a Prometheus instance that uses
 ```json
 [
   {
-    "targets": ["100.x.x.a:4006"],
+    "targets": ["100.121.180.82:4006"],
     "labels": { "service": "zeavis-api", "component": "backend", "env": "production" }
   },
   {
-    "targets": ["100.x.x.b:4012"],
+    "targets": ["100.121.180.82:4012"],
     "labels": { "service": "zeavis-ml", "component": "inference", "env": "production" }
   }
 ]
@@ -114,7 +114,7 @@ The Telemetry submodule includes a Prometheus instance that uses
 > ⚠️ **Cross-VPS:** Gunakan **IP Tailscale** (bukan Docker hostname) karena
 > Prometheus dan ZeaVis Edu berjalan di VPS berbeda. Pastikan port service
 > (`:4006`, `:4012`) terekspos di `0.0.0.0` atau diizinkan oleh aturan
-> `iptables`/`ufw` untuk interface Tailscale (`tailscale0`/`100.x.x.x/10`).
+> `iptables`/`ufw` untuk interface Tailscale (`tailscale0`/`100.121.180.82`).
 
 The Prometheus config (in `telemetry/prometheus/prometheus.yml`) will
 automatically pick up new files within its 15‑second scrape interval —

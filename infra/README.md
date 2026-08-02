@@ -1,6 +1,8 @@
 # Infrastruktur — ZeaVis Edu
 
 > Arsitektur multi-VPS untuk deployment produksi ZeaVis Edu dengan Tailscale mesh VPN dan observabilitas penuh.
+>
+> > **Catatan (2026-08-02):** Produksi kini memakai **Nix + systemd + Caddy 2.11.4** (Docker/Traefik/Coolify dihapus). Deploy: GitHub Actions → `nix build` → `nix copy ssh://` → `systemctl restart`.
 
 ← [Kembali ke README utama](../README.md)
 
@@ -29,7 +31,7 @@ ZeaVis Edu berjalan di **dua VPS terpisah** yang terhubung melalui **Tailscale**
 │                                             │     │                                              │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  │     │  ┌──────────┐  ┌──────────────┐             │
 │  │  Web     │  │  API     │  │  ML      │  │     │  │Prometheus│  │Metric        │             │
-│  │:80       │  │:4006     │  │:4012     │  │     │  │:9090     │  │Ingester      │             │
+│  │:4011     │  │:4006     │  │:4012     │  │     │  │:9090     │  │Ingester      │             │
 │  │/metrics  │  │/metrics  │  │/metrics  │  │     │  │          │  │:9091         │             │
 │  └──────────┘  └──────────┘  └──────────┘  │     │  └────┬─────┘  └──────┬───────┘             │
 │  ┌──────────────────────────────────────┐  │     │       │               │                     │
@@ -38,8 +40,8 @@ ZeaVis Edu berjalan di **dua VPS terpisah** yang terhubung melalui **Tailscale**
 │  └──────────────────────────────────────┘  │     │  ┌──────────────────────────────────────┐   │
 │                                             │     │  │          Vector                      │   │
 │     ┌──────────────┐                        │     │  │          :9001                       │   │
-│     │   Traefik    │                        │     │  └────────────────┬─────────────────────┘   │
-│     │ (Coolify)    │                        │     │                   │                         │
+│     │    Caddy     │                        │     │  └────────────────┬─────────────────────┘   │
+│     │  2.11.4      │                        │     │                   │                         │
 │     └──────────────┘                        │     │                   ▼                         │
 │                                             │     │  ┌──────────────────────────────────────┐   │
 │  ZeaVis Edu Apps via                        │     │  │           ClickHouse                  │   │
@@ -58,14 +60,14 @@ ZeaVis Edu berjalan di **dua VPS terpisah** yang terhubung melalui **Tailscale**
 │                                             │     │  │      :8181                          │   │
 │                                             │     │  └──────────────────────────────────────┘   │
 │                                             │     │                                              │
-│                                             │     │  Coolify + Traefik handles:                 │
-│                                             │     │  telemetry.zeavisedu.asepharyana.my.id       │
+│                                             │     │  Caddy handles:                          │
+│                                             │     │  telemetry.zeavisedu.asepharyana.my.id    │
 └─────────────────────────────────────────────┘     └──────────────────────────────────────────────┘
 ```
 
 | VPS | Hostname | OS | Peran |
 |---|---|---|---|
-| **App VPS** | `imrnes` | Arch Linux | Web (:80), API (:4006), ML Service (:4012) |
+| **App VPS** | `imrnes` | Arch Linux | Web nginx (:4011), API (:4006), ML Service (:4012) |
 | **Telemetry VPS** | `orange` | Ubuntu | Prometheus, ClickHouse, Telemetry UI |
 
 ---
@@ -100,11 +102,9 @@ ZeaVis Edu berjalan di **dua VPS terpisah** yang terhubung melalui **Tailscale**
 ### App VPS (imrnes — 100.121.180.82)
 
 ```bash
-# Create Docker network
-docker network create app-shared-net
-docker network create telemetry-net
-
-# ZeaVis Edu apps deploy automatically via GitHub Actions
+# Semua service dikelola Nix + systemd — deploy otomatis via GitHub Actions:
+#   nix build .#<service> → nix copy ssh://imrnes → systemctl restart zeavis-<service>
+# Reverse proxy: Caddy 2.11.4 (systemd caddy.service, /etc/caddy/Caddyfile, auto-TLS LE)
 ```
 
 ### Telemetry VPS (orange — 100.96.248.86)
@@ -113,10 +113,8 @@ Deploy via GitHub Actions atau manual:
 
 ```bash
 ssh mytheclipse@100.96.248.86
-mkdir -p /opt/telemetry
-cd /opt/telemetry
-docker compose up -d
-bash clickhouse/init.sh
+# Telemetry stack juga Nix + systemd (Docker dihapus dari produksi 2026-08-02)
+# Deploy otomatis via GitHub Actions → nix build → nix copy ssh:// → systemctl restart
 ```
 
 ---
@@ -127,16 +125,17 @@ bash clickhouse/init.sh
 
 | Port | Service | Akses |
 |---|---|---|
-| 80/443 | Web (via Traefik/Coolify) | Public |
-| 4006 | API metrics | Tailscale-only |
-| 4012 | ML service metrics | Tailscale-only |
+| 80/443 | Web entry (Caddy, auto-TLS LE) | Public |
+| 4011 | Web nginx (`zeavisedu.asepharyana.my.id`) | Public (via Caddy) |
+| 4006 | API metrics (zeavis-api) | via Caddy / Tailscale-only |
+| 4012 | ML service metrics (zeavis-ml) | Tailscale-only |
 | 9100 | Node Exporter | Tailscale-only |
 
 ### Telemetry VPS (orange)
 
 | Port | Service | Akses |
 |---|---|---|
-| 80/443 | Telemetry UI (via Coolify Traefik) | Public |
+| 80/443 | Telemetry UI (via Caddy) | Public |
 | 8181 | Telemetry UI (direct) | Tailscale-only |
 | 9090 | Prometheus | Tailscale-only |
 | 9091 | Metric Ingester | Tailscale-only |

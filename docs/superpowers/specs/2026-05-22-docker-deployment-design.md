@@ -48,6 +48,8 @@ Each image will also receive a SHA tag for traceability.
 
 ## Compose deployment
 
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.
+
 The VPS will run `docker compose` from `/opt/ZeaVis-Edu`.
 
 The compose file will define:

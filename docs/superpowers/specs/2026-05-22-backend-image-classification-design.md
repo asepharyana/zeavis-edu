@@ -88,3 +88,7 @@ The implementation should pass:
 - `bun run build`
 
 Manual verification should launch API and web locally, open the dashboard, select an image, submit it, and verify that uploader/model/database success or structured error states render without crashing.
+
+---
+
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.

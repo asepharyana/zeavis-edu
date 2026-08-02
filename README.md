@@ -36,7 +36,7 @@ Proyek ini merupakan **Capstone Project** dalam program **Pijak × IBM SkillsBui
 
 | NPM | Nama | Learning Path | Peran |
 |---|---|---|---|
-| APC246D6Y0028 | **Asep Haryana Saputra** | Back-End | Arsitektur sistem, RESTful API, deployment Docker/Cloud, keamanan upload stream |
+| APC246D6Y0028 | **Asep Haryana Saputra** | Back-End | Arsitektur sistem, RESTful API, deployment Nix/Cloud, keamanan upload stream |
 | APC013D6X0081 | **Selly Supriyatin** | Front-End | UI/UX responsif, mekanisme unggah gambar, modul edukasi (rekomendasi obat & penanganan) |
 | APC013D6Y0091 | **Taufik Pathurrohman** | Machine Learning | Data Engineering — ekstraksi dataset, cleaning, augmentasi gambar |
 | APC414D6Y0138 | **Luhung Pandyaska Suyi** | Machine Learning | Model Architecture & Training — CNN, hyperparameter tuning |
@@ -70,7 +70,7 @@ ZeaVis Edu menggunakan **Computer Vision** sebagai asisten edukasi interaktif:
 | Sumber Dataset 2 | Kaggle — [Corn or Maize Leaf Disease Dataset](https://www.kaggle.com/datasets/smaranjitghose/corn-or-maize-leaf-disease-dataset) |
 | Sumber Dataset 3 | scidb — [Dataset of Corn Leaf Diseases based on Manual Annotation and Contrast Generation Model](https://www.scidb.cn/en/detail?dataSetId=19536c73f6d74946a212719a94f53ab3) |
 
-| Deployment | VPS dengan Docker, ONNX Runtime untuk inferensi real-time |
+| Deployment | VPS dengan Nix + systemd + Caddy, ONNX Runtime untuk inferensi real-time |
 
 ---
 
@@ -101,7 +101,7 @@ ZeaVis Edu menggunakan **Computer Vision** sebagai asisten edukasi interaktif:
 | 1 | **Pengumpulan Data** | Dataset gambar 3 penyakit + 1 daun sehat dari Kaggle beserta pelabelan |
 | 2 | **Model ML** | Model Computer Vision terlatih di Google Colab, siap produksi |
 | 3 | **UI Antarmuka** | Front-End berbasis React + Vite dengan fitur unggah gambar |
-| 4 | **Back-End Integration** | API + ML Service untuk inferensi real-time via Docker |
+| 4 | **Back-End Integration** | API + ML Service untuk inferensi real-time via Nix + systemd |
 | 5 | **Prototipe Akhir** | Aplikasi Web + Android (Tauri 2) dengan klasifikasi & modul edukasi (rekomendasi obat & penanganan) |
 
 ---
@@ -123,7 +123,7 @@ ZeaVis Edu menggunakan **Computer Vision** sebagai asisten edukasi interaktif:
 | Risiko | Solusi |
 |---|---|
 | **Overfitting akibat imbalanced data** | Augmentasi tingkat lanjut (kecerahan, noise, rotasi) + confidence threshold < 75% → minta user foto ulang |
-| **Server downtime / latensi tinggi** | Batasan upload ≤ 5 MB + kompresi server-side + rate limiting + container Docker isolasi resource |
+| **Server downtime / latensi tinggi** | Batasan upload ≤ 5 MB + kompresi server-side + rate limiting + isolasi resource per-service (systemd) |
 | **Foto blur / objek bukan daun jagung** | Panduan visual (overlay) pada UI + validasi anomali + disclaimer "alat bantu edukasi, bukan pengganti POPT" |
 | **Bottleneck integrasi ML ↔ API ↔ UI** | API Contract ketat di minggu ke-1 + integrasi bertahap (CI) mulai minggu ke-3 |
 
@@ -144,7 +144,7 @@ ZeaVis Edu menggunakan **Computer Vision** sebagai asisten edukasi interaktif:
 │   └── README.md             # ⤷ Panduan deployment multi-VPS
 ├── packages/shared/          # Tipe & utilitas TypeScript bersama
 ├── telemetry/                # Submodule — Prometheus → ClickHouse pipeline
-├── docker-compose.yml        # Konfigurasi deployment container
+├── flake.nix                 # Konfigurasi deployment Nix (systemd services)
 ├── package.json              # Root workspace Bun + Moon
 └── README.md                 # ⤷ Anda di sini
 ```
@@ -156,7 +156,7 @@ ZeaVis Edu menggunakan **Computer Vision** sebagai asisten edukasi interaktif:
 | API Backend | Bun, Elysia, Drizzle ORM, PostgreSQL | `apps/api/` |
 | ML Inference Engine | Rust, Axum, ONNX Runtime | [`apps/ml-service/README.md`](apps/ml-service/README.md) |
 | ML Pipeline | Python, TensorFlow/Keras, EfficientNetV2B0 | [`Machine_Learning/README.md`](Machine_Learning/README.md) |
-| Infrastruktur | Docker, Coolify, Traefik, Tailscale | [`infra/README.md`](infra/README.md) |
+| Infrastruktur | Nix, systemd, Caddy, Tailscale | [`infra/README.md`](infra/README.md) |
 | Telemetry | Prometheus, ClickHouse, Vector, Vue 3 | `telemetry/` |
 
 ---
@@ -177,7 +177,7 @@ Python &bull; TensorFlow/Keras &bull; EfficientNetV2B0 &bull; Google Colab (GPU 
 **Rust** &bull; **Axum** &bull; **ONNX Runtime** &bull; TFLite &bull; TensorFlow.js
 
 ### DevOps & Infrastruktur
-Docker &bull; Docker Compose &bull; Coolify &bull; Traefik &bull; Tailscale &bull; GitHub Actions (CI/CD)
+Nix &bull; systemd &bull; Caddy &bull; Tailscale &bull; GitHub Actions (CI/CD)
 
 ### Observabilitas
 Prometheus &bull; Metric Ingester (Go) &bull; Vector &bull; ClickHouse &bull; Query Proxy (Go) &bull; Telemetry UI (Vue 3)
@@ -192,8 +192,8 @@ Prometheus &bull; Metric Ingester (Go) &bull; Vector &bull; ClickHouse &bull; Qu
 - **Python 3.9–3.11** — pipeline ML
 - **Rust & Cargo** — `apps/ml-service` (inference) & `apps/tauri` (Android)
 - **Java 21 + Android SDK** — build Android APK
-- **Docker & Docker Compose** — deployment & telemetry
-- **PostgreSQL** — backend API
+- **Nix** — build & deployment produksi (flake.nix, systemd services)
+- **PostgreSQL (Neon)** — backend API (via pgbouncer pool imrnes `100.121.180.82:6432`)
 
 ### Instalasi
 
@@ -239,9 +239,14 @@ Salin `.env.example` ke `.env` dan isi:
 
 ### Deployment
 
+Produksi: **Nix + systemd + Caddy** (Docker sudah dihapus dari produksi 2026-08-02).
+Deploy via GitHub Actions → `nix build .#<service>` → `nix copy ssh://imrnes` → `systemctl restart zeavis-<service>`.
+Reverse proxy: Caddy 2.11.4 (`systemd caddy.service`, auto-TLS Let's Encrypt, HTTP/3).
+
 ```bash
-docker compose up -d       # App services
-make telemetry-up          # Telemetry stack
+# Port produksi: zeavis-api 4006, zeavis-web (nginx) 4011, zeavis-ml 4012
+# Database: Neon via pgbouncer pool imrnes 100.121.180.82:6432
+make telemetry-up          # Telemetry stack (dev/local)
 ```
 
 > 📖 **Panduan infrastruktur:** [`infra/README.md`](infra/README.md)
@@ -307,7 +312,7 @@ bun run tauri android build --apk # Build APK production
 | `bun install` gagal | `bun --version` — pastikan ≥ 1.x |
 | API perlu database | Isi `DATABASE_URL` di root `.env` |
 | ML service gagal muat model | `ls Machine_Learning/model/model.onnx` — jalankan pipeline ML jika belum ada |
-| Docker Compose gagal | `docker network create app-shared-net` |
+| Service tidak restart setelah deploy | `systemctl restart zeavis-api zeavis-web zeavis-ml` (Nix+systemd, bukan Docker) |
 | Konversi TFJS gagal | `export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python` |
 
 ---

@@ -2490,3 +2490,7 @@ Spec coverage:
 Red-flag scan: no unresolved planning markers are intentionally present. The only implementation choice left to workers is resolving compile errors revealed by real typecheck output, which must be fixed directly before completing each task.
 
 Type consistency: shared DTO names are introduced first and reused by backend/frontend tasks. Diagnosis status strings match the design spec.
+
+---
+
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.

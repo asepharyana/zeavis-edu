@@ -74,3 +74,7 @@ No test framework is added in this scaffold. Tests should be introduced with the
 - Real dashboard data.
 - Database migrations for domain entities.
 - Deployment configuration.
+
+---
+
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.

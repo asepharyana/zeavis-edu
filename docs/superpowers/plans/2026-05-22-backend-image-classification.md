@@ -631,3 +631,7 @@ Open `/dashboard`. Confirm the image classification form renders. If no database
 - Spec coverage: backend TFJS inference, uploader integration, DB persistence, API routes, shared types, frontend upload/result/history, and verification are covered.
 - Placeholder scan: no TBD/TODO/fill-later placeholders remain; every file and route has explicit behavior.
 - Type consistency: `ImageClassificationRecord`, `PredictionProbability`, and `UploaderMetadata` are defined once in shared and used consistently across API and web.
+
+---
+
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.

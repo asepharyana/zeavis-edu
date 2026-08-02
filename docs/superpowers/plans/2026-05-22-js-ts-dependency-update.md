@@ -197,3 +197,7 @@ Do not claim completion unless the final verification command passed.
 - Spec coverage: The plan updates only JS/TS manifests, regenerates `bun.lock`, allows minimal compatibility refactors, and verifies with `bun run typecheck` and `bun run build`.
 - Placeholder scan: No TODO/TBD placeholders remain.
 - Scope check: Python/ML dependencies are explicitly out of scope and verified unchanged.
+
+---
+
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.

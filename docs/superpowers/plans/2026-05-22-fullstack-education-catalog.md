@@ -802,3 +802,7 @@ If no fixes were required, do not create an empty commit.
 - Spec coverage: shared contract, backend schema/routes, frontend pages/manual flow, error states, and verification are all covered.
 - Placeholder scan: no TBD/TODO/fill-later placeholders are present. Task 4 uses explicit behavior requirements for page files because page markup is lengthy, but all required states and wiring are specified.
 - Type consistency: shared names (`DiseaseSlug`, `DiseaseCatalogItem`, `ManualClassificationRequest`, `ManualClassificationRecord`, `DashboardSummary`) are consistent across tasks.
+
+---
+
+> Catatan (2026-08-02): port produksi sekarang API 4006, nginx 4011, ML 4012; deploy Nix+systemd+Caddy.

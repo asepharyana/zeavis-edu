@@ -162,7 +162,7 @@ Each ZeaVis Edu service exposes a `GET /metrics` endpoint:
 
 All three share the `zeavis_` metric prefix and are scraped by Prometheus via `file_sd_configs` (see `telemetry/prometheus/targets/zeavis-edu.json`).
 
-**IMPORTANT — Production architecture:** ZeaVis Edu apps and the Telemetry stack run on **separate VPS instances** connected via **Tailscale** (mesh VPN). Prometheus scrapes the API and ML service through their **Tailscale IPs** (e.g. `100.x.x.a:4006`), not via Docker hostnames. The target file has `__CHANGE_ME__` placeholders — replace with actual Tailscale IPs before deploying.
+**IMPORTANT — Production architecture:** ZeaVis Edu apps and the Telemetry stack run on **separate VPS instances** connected via **Tailscale** (mesh VPN). Prometheus scrapes the API and ML service through their **Tailscale IPs** (e.g. `100.121.180.82:4006`), not via Docker hostnames. The target file has `__CHANGE_ME__` placeholders — replace with actual Tailscale IPs before deploying.
 
 The telemetry stack is managed from the project root via `make telemetry-*` targets (see `Makefile`). Docker Compose defines 5 services (Prometheus, Node Exporter, Query Proxy, Grafana, Telemetry UI).
 
