@@ -79,7 +79,7 @@ ML_SERVICE_PORT=9000 MODEL_PATH=/path/to/model.onnx cargo run
 | Variable | Default | Keterangan |
 |---|---|---|
 | `ML_SERVICE_HOST` | `0.0.0.0` | Bind address |
-| `ML_SERVICE_PORT` | `8000` | Bind port |
+| `ML_SERVICE_PORT` | `4012` | Bind port |
 | `MODEL_PATH` | `../../Machine_Learning/model/model.onnx` | Path ke file model ONNX |
 | `MODEL_INPUT_SIZE` | `224` | Ukuran input gambar (224×224 untuk EfficientNetV2B0) |
 | `RUST_LOG` | `info` | Level logging (debug, info, warn, error) |
@@ -157,7 +157,7 @@ cargo build --release
 cargo test
 ```
 
-### Verifikasi Manual (default port 8000)
+### Verifikasi Manual (default port 4012)
 
 ```bash
 # 1. Start service
@@ -182,7 +182,7 @@ Service dapat di-deploy via Docker. Build dari root repository karena Dockerfile
 
 ```bash
 docker build -f apps/ml-service/Dockerfile -t zeavis-ml-service .
-docker run -p 8000:4012 zeavis-ml-service
+docker run -p 4012:4012 zeavis-ml-service
 ```
 
 Pastikan `Machine_Learning/model/model.onnx` sudah dibuat sebelum build image.

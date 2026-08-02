@@ -30,7 +30,7 @@ impl Config {
 
     pub fn from_env_with_base_dir(base_dir: &Path) -> Result<Self> {
         let host = env::var("ML_SERVICE_HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
-        let port = parse_env_u16("ML_SERVICE_PORT", 8000)?;
+        let port = parse_env_u16("ML_SERVICE_PORT", 4012)?;
         let input_size = parse_env_u32("MODEL_INPUT_SIZE", DEFAULT_INPUT_SIZE)?;
         let model_path = env::var("MODEL_PATH").unwrap_or_else(|_| DEFAULT_MODEL_PATH.to_string());
         let temperature = parse_env_f32("MODEL_TEMPERATURE", DEFAULT_TEMPERATURE)?;
@@ -116,7 +116,7 @@ mod tests {
                 let config = Config::from_env_with_base_dir(Path::new("/repo/apps/ml-service")).unwrap();
 
                 assert_eq!(config.host, "0.0.0.0");
-                assert_eq!(config.port, 8000);
+                assert_eq!(config.port, 4012);
                 assert_eq!(config.input_size, 224);
                 assert_eq!(
                     config.model_path,

@@ -231,7 +231,7 @@ export function TelemetryPage() {
         queryRange(`zeavis_api_http_requests_total{instance="${INST}:4006"}`, 60),
         queryRange(`zeavis_api_http_request_duration_seconds_sum{instance="${INST}:4006"} / zeavis_api_http_request_duration_seconds_count{instance="${INST}:4006"}`, 60),
         // ML
-        queryInstant(`zeavis_ml_zeavis_ml_model_load_status{instance="${INST}:8000"}`),
+        queryInstant(`zeavis_ml_zeavis_ml_model_load_status{instance="${INST}:4012"}`),
         // NodeJS
         queryInstant(`nodejs_heap_size_used_bytes{instance="${INST}:4006"}`),
         queryInstant(`nodejs_heap_size_total_bytes{instance="${INST}:4006"}`),
