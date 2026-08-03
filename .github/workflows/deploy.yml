@@ -17,7 +17,28 @@ env:
   VPS_USER: ${{ secrets.VPS_USER }}
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: false
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install deps (root workspace)
+        run: bun install --frozen-lockfile
+
+      - name: Test API
+        working-directory: apps/api
+        run: bun test
+
   build-and-deploy:
+    needs: test
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
