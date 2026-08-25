@@ -33,7 +33,7 @@
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "postcss": "^8.5.15",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "vite": "^8.0.14",
     "vite-tsconfig-paths": "6.1.1"
   }
