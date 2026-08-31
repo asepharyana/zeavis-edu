@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "description": "ZeaVis Edu Tauri desktop and mobile application",
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",
@@ -14,6 +15,6 @@
     "@tauri-apps/cli": "^2"
   },
   "dependencies": {
-    "sharp": "0.35.3"
+    "sharp": "^0.35.4"
   }
 }
