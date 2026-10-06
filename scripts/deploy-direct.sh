@@ -182,9 +182,17 @@ fi
 log "checked out $(git -C "$RELEASE_DIR" rev-parse --short HEAD)"
 
 # Carry runtime env across (not tracked by git, so a fresh checkout has none).
-if [ -f "${LIVE_LINK}/.env" ] && [ ! -f "${RELEASE_DIR}/.env" ]; then
-  cp "${LIVE_LINK}/.env" "${RELEASE_DIR}/.env"
-  log "carried .env from the live payload"
+# On the very first deploy the live path is still the old real directory; after
+# that it is a symlink, so fall back to the previous release.
+ENV_SRC=""
+if [ -f "${LIVE_LINK}/.env" ]; then
+  ENV_SRC="${LIVE_LINK}/.env"
+elif [ -n "$PREV_TARGET" ] && [ -f "$PREV_TARGET/.env" ]; then
+  ENV_SRC="$PREV_TARGET/.env"
+fi
+if [ -n "$ENV_SRC" ] && [ ! -f "${RELEASE_DIR}/.env" ]; then
+  cp "$ENV_SRC" "${RELEASE_DIR}/.env"
+  log "carried .env from the previous payload"
 fi
 
 # ── 2. install (+ build for web) ───────────────────────────────────────────
@@ -208,13 +216,16 @@ fi
   fi
 )
 
+# $TARGET is what the live path will point at: the built SPA for web, the whole
+# checkout for api (the launcher `cd`s into it and runs apps/api/.../tsx).
 if [ -n "$ARTIFACT" ]; then
-  [ -f "$RELEASE_DIR/$ARTIFACT/index.html" ] \
-    || die "build produced no $ARTIFACT/index.html"
+  TARGET="$RELEASE_DIR/$ARTIFACT"
+  [ -f "$TARGET/index.html" ] || die "build produced no $TARGET/index.html"
 else
-  [ -x "$RELEASE_DIR/apps/api/node_modules/.bin/tsx" ] \
+  TARGET="$RELEASE_DIR"
+  [ -x "$TARGET/apps/api/node_modules/.bin/tsx" ] \
     || die "pnpm install did not produce apps/api/node_modules/.bin/tsx"
-  [ -f "$RELEASE_DIR/packages/shared/dist/index.js" ] \
+  [ -f "$TARGET/packages/shared/dist/index.js" ] \
     || die "pnpm did not produce packages/shared/dist/index.js"
 fi
 
@@ -223,9 +234,9 @@ fi
 as_root chmod -R a+rX "$RELEASE_DIR"
 
 # ── 3. activate ────────────────────────────────────────────────────────────
-log "activating $RELEASE_DIR"
+log "activating $TARGET"
 NEW_LINK="${LIVE_LINK}.new.$$"
-as_root ln -sfn "$RELEASE_DIR" "$NEW_LINK"
+as_root ln -sfn "$TARGET" "$NEW_LINK"
 if [ -L "$LIVE_LINK" ]; then
   as_root mv -Tf "$NEW_LINK" "$LIVE_LINK"           # atomic rename(2)
 elif [ -e "$LIVE_LINK" ]; then
