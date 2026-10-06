@@ -1,4 +1,4 @@
-name: Build & Deploy (Nix)
+name: Build & Deploy (pnpm)
 
 on:
   push:
@@ -9,9 +9,10 @@ concurrency:
   group: zeavis-deploy
   cancel-in-progress: false
 
+# No `id-token: write`: it only ever served the FlakeHub publish step, which
+# lives in flakehub-publish-rolling.yaml. There is no Nix anywhere in here.
 permissions:
   contents: read
-  id-token: write
 
 env:
   VPS_HOST: ${{ secrets.VPS_HOST }}
@@ -20,6 +21,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -27,25 +29,42 @@ jobs:
           fetch-depth: 0
           submodules: false
 
-      - uses: oven-sh/setup-bun@v2
+      # Version comes from `packageManager` in package.json (pnpm@10.33.2).
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          bun-version: "1.4.0"
+          # 24 to match the VPS (node v24.21.0)
+          node-version: 24
+          cache: pnpm
 
-      - name: Install deps (root workspace)
-        run: bun install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - name: Test API
-        working-directory: apps/api
-        run: bun test
+      # ml-service:typecheck is `cargo check` (Rust) and is out of scope for
+      # this pnpm workspace — see the note on the deploy matrix below.
+      - name: Typecheck
+        run: pnpm exec moon run shared:typecheck api:typecheck web:typecheck
+
+      - name: Test
+        run: pnpm test
 
   build-and-deploy:
     needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       max-parallel: 1
       matrix:
-        service: [api, ml-service, web]
+        # zeavis-ml-service is intentionally absent: it is a Rust/onnx binary
+        # whose launcher (/opt/zeavis-ml-service/bin/zeavis-ml-service) still
+        # points at a deleted /nix/store path, so it cannot be restarted, let
+        # alone rebuilt, from this pnpm tree. Re-add it only once that binary is
+        # produced by a cargo build and shipped separately.
+        service: [api, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -53,81 +72,39 @@ jobs:
           fetch-depth: 0
           submodules: false
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v22
-        with:
-          determinate: false
-          extra-conf: |
-            sandbox = false
-            accept-flake-config = true
-
-      - name: Cache Nix
-        uses: DeterminateSystems/magic-nix-cache-action@v14
-        with:
-          use-flakehub: false
-
-      - name: Build zeavis-${{ matrix.service }}
-        id: build
-        run: |
-          STORE_PATH=$(nix build .#${{ matrix.service }} --impure --option sandbox false --no-link --print-out-paths | tail -1)
-          echo "store-path=$STORE_PATH" >> "$GITHUB_OUTPUT"
-          echo "Build OK zeavis-${{ matrix.service }}: $STORE_PATH"
 
       - name: Setup SSH key
         env:
           SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           sed -i 's/\r$//' ~/.ssh/id_ed25519
           ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null 2>&1 || { echo "SSH key invalid"; exit 1; }
           ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
+      # The script is shipped from THIS checkout so the deploy logic always
+      # matches the commit being released, then runs on the box: clone the sha,
+      # pnpm install --frozen-lockfile, atomically flip the live path, restart
+      # the unit, health-check, and roll back if the check fails.
+      - name: Copy deploy script to VPS
+        run: scp -o BatchMode=yes scripts/deploy-direct.sh "$VPS_USER@$VPS_HOST:/tmp/zeavis-deploy-direct.sh"
+
       - name: Deploy zeavis-${{ matrix.service }} to VPS
-        run: |
-          STORE_PATH="${{ steps.build.outputs.store-path }}"
-          echo "=== Copying zeavis-${{ matrix.service }}: $STORE_PATH ==="
-          nix copy --to "ssh://$VPS_USER@$VPS_HOST" "$STORE_PATH"
-
-          echo "=== Updating profile + restarting ==="
-          ssh "$VPS_USER@$VPS_HOST" "
-            set -eu
-            if [ -d /nix/var/nix/profiles/zeavis-${{ matrix.service }} ] && [ ! -L /nix/var/nix/profiles/zeavis-${{ matrix.service }} ]; then
-              rm -rf /nix/var/nix/profiles/zeavis-${{ matrix.service }}
-            fi
-            sudo /nix/var/nix/profiles/default/bin/nix-env --profile /nix/var/nix/profiles/zeavis-${{ matrix.service }} --set '$STORE_PATH'
-            sudo systemctl daemon-reload
-            sudo systemctl enable zeavis-${{ matrix.service }} 2>/dev/null || true
-            sudo systemctl restart zeavis-${{ matrix.service }}
-            for i in \$(seq 1 30); do
-              systemctl is-active --quiet zeavis-${{ matrix.service }} && break
-              sleep 1
-            done
-            systemctl is-active zeavis-${{ matrix.service }} || {
-              echo '=== SERVICE FAILED — journal ==='
-              journalctl -u zeavis-${{ matrix.service }} -n 40 --no-pager
-              exit 1
-            }
-            systemctl status zeavis-${{ matrix.service }} --no-pager 2>&1 | head -8
-          "
-          echo "✅ zeavis-${{ matrix.service }} deployed"
-
-  cleanup:
-    # Bersihkan sampah Nix di VPS SETELAH deploy: hapus generasi profile lama
-    # + nix store gc. Profil yang sedang dipakai tidak disentuh.
-    needs: build-and-deploy
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Nix GC on VPS
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DEPLOY_SHA: ${{ github.sha }}
+          DEPLOY_REF: ${{ github.ref_name }}
         run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null
-          ssh "$VPS_USER@$VPS_HOST" "sudo /usr/local/bin/nix-gc-vps.sh" || echo "⚠️ Nix GC gagal (non-fatal)"
+          ssh -o BatchMode=yes "$VPS_USER@$VPS_HOST" \
+            "bash /tmp/zeavis-deploy-direct.sh '${{ matrix.service }}' '$DEPLOY_SHA' '$DEPLOY_REF'"
+
+      - name: Journal on failure
+        if: failure()
+        env:
+          DEPLOY_SHA: ${{ github.sha }}
+        run: |
+          echo "=== deploy of ${{ matrix.service }} @ $DEPLOY_SHA failed - journal ==="
+          ssh -o BatchMode=yes "$VPS_USER@$VPS_HOST" \
+            "systemctl status zeavis-${{ matrix.service }} --no-pager 2>&1 | head -20; journalctl -u zeavis-${{ matrix.service }} -n 60 --no-pager" \
+            || true

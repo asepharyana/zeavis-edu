@@ -4,16 +4,14 @@
   "scripts": {
     "dev": "moon run :dev",
     "build": "moon run shared:build api:build web:build",
+    "test": "pnpm --filter @zeavis/api test",
     "typecheck": "moon run :typecheck"
   },
+  "packageManager": "pnpm@10.33.2",
   "devDependencies": {
     "@moonrepo/cli": "^2.5.6",
     "typescript": "^7.0.2"
   },
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "dependencies": {
     "@tauri-apps/api": "2.12.1",
     "@tauri-apps/plugin-deep-link": "2.4.10",

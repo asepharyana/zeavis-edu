@@ -247,18 +247,7 @@ export const classificationRoutes = new Elysia({ prefix: '/api/v1' })
         observation: row.observation,
         location: row.location,
         createdAt: row.createdAt.toISOString(),
-        disease: {
-          slug: row.disease.slug as any,
-          label: row.disease.label as any,
-          commonName: row.disease.commonName,
-          summary: row.disease.summary,
-          description: row.disease.description,
-          symptoms: row.disease.symptoms,
-          recommendations: row.disease.recommendations,
-          riskLevel: row.disease.riskLevel as any,
-          accentColor: row.disease.accentColor,
-          displayOrder: row.disease.displayOrder,
-        },
+        disease: toDisease(row.disease as typeof diseaseCatalog.$inferSelect),
       }));
 
       return records;
@@ -306,18 +295,7 @@ export const classificationRoutes = new Elysia({ prefix: '/api/v1' })
         observation: inserted[0].observation,
         location: inserted[0].location,
         createdAt: inserted[0].createdAt.toISOString(),
-        disease: {
-          slug: disease.slug as any,
-          label: disease.label as any,
-          commonName: disease.commonName,
-          summary: disease.summary,
-          description: disease.description,
-          symptoms: disease.symptoms,
-          recommendations: disease.recommendations,
-          riskLevel: disease.riskLevel as any,
-          accentColor: disease.accentColor,
-          displayOrder: disease.displayOrder,
-        },
+        disease: toDisease(disease),
       };
 
       return record;

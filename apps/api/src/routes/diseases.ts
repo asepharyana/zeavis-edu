@@ -1,7 +1,8 @@
 import { Elysia } from 'elysia';
-import type { DiseaseCatalogItem, DiseaseSlug, DiseaseLabel, RiskLevel } from '@zeavis/shared';
+import type { DiseaseCatalogItem } from '@zeavis/shared';
 import { createDbClient } from '../db/client';
 import { diseaseCatalog } from '../db/schema';
+import { toDisease } from '../lib/disease-mappers';
 import { notFound, serviceUnavailable } from '../lib/http-errors';
 import { asc, eq } from 'drizzle-orm';
 
@@ -14,18 +15,7 @@ export const diseaseRoutes = new Elysia({ prefix: '/api/v1' })
         .from(diseaseCatalog)
         .orderBy(asc(diseaseCatalog.displayOrder));
 
-      const items: DiseaseCatalogItem[] = rows.map((row) => ({
-        slug: row.slug as DiseaseSlug,
-        label: row.label as DiseaseLabel,
-        commonName: row.commonName,
-        summary: row.summary,
-        description: row.description,
-        symptoms: row.symptoms,
-        recommendations: row.recommendations,
-        riskLevel: row.riskLevel as RiskLevel,
-        accentColor: row.accentColor,
-        displayOrder: row.displayOrder,
-      }));
+      const items: DiseaseCatalogItem[] = rows.map(toDisease);
 
       return items;
     } catch (error) {
@@ -45,18 +35,7 @@ export const diseaseRoutes = new Elysia({ prefix: '/api/v1' })
         return notFound(`Disease with slug "${params.slug}" not found`);
       }
 
-      const item: DiseaseCatalogItem = {
-        slug: row[0].slug as DiseaseSlug,
-        label: row[0].label as DiseaseLabel,
-        commonName: row[0].commonName,
-        summary: row[0].summary,
-        description: row[0].description,
-        symptoms: row[0].symptoms,
-        recommendations: row[0].recommendations,
-        riskLevel: row[0].riskLevel as RiskLevel,
-        accentColor: row[0].accentColor,
-        displayOrder: row[0].displayOrder,
-      };
+      const item: DiseaseCatalogItem = toDisease(row[0]);
 
       return item;
     } catch (error) {

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from 'bun:test';
+import { afterEach, describe, expect, test } from 'vitest';
 import { classifyImage } from './image-model';
 
 const originalFetch = globalThis.fetch;
@@ -12,7 +12,12 @@ function makeImageFile(type = 'image/jpeg') {
 }
 
 function mockFetch(handler: (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => Promise<Response>) {
-  globalThis.fetch = Object.assign(handler, { preconnect: originalFetch.preconnect });
+  // `fetch.preconnect` is a Bun-only static — Node's `fetch` has none, and
+  // `classifyImage` never calls it. Read it through a cast so the mock keeps
+  // whatever statics the host runtime provides without needing bun's types.
+  globalThis.fetch = Object.assign(handler, {
+    preconnect: (originalFetch as unknown as { preconnect?: unknown }).preconnect,
+  });
 }
 
 describe('classifyImage', () => {

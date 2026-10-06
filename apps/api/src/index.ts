@@ -1,4 +1,5 @@
 import { Elysia } from 'elysia';
+import { node } from '@elysiajs/node';
 import cors from '@elysiajs/cors';
 import { env, assertRequiredEnv } from './config/env';
 import { healthRoutes } from './routes/health';
@@ -15,7 +16,11 @@ import './types';
 
 assertRequiredEnv();
 
-const app = new Elysia()
+// Elysia picks its server adapter from the runtime: under bun it found the Bun
+// global and used BunAdapter, but on Node there is no `Bun` global, so it fell
+// back to WebStandardAdapter — which has no `listen()` and throws on startup.
+// Selecting the Node adapter explicitly is what makes `.listen()` work here.
+const app = new Elysia({ adapter: node() })
   .use(cors({
     origin: env.allowedOrigins,
     credentials: true,
@@ -48,6 +53,8 @@ const app = new Elysia()
   .use(dashboardRoutes)
   .listen(env.port);
 
-console.log(`ZeaVis Edu API running at http://${app.server?.hostname}:${app.server?.port}`);
+// `app.server` only exists on the Bun adapter; the Node adapter holds the
+// socket privately, so report the configured port rather than printing undefined.
+console.log(`ZeaVis Edu API running at http://0.0.0.0:${env.port}`);
 
 export type App = typeof app;

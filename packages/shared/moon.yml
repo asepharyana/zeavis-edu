@@ -1,6 +1,6 @@
 tasks:
   build:
-    command: bun run build
+    command: pnpm run build
     inputs:
       - src/**/*
       - tsconfig.json
@@ -9,7 +9,7 @@ tasks:
     outputs:
       - dist
   typecheck:
-    command: bun run typecheck
+    command: pnpm run typecheck
     inputs:
       - src/**/*
       - tsconfig.json

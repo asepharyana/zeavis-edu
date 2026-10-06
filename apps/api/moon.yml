@@ -1,8 +1,10 @@
 tasks:
   dev:
-    command: bun run dev
+    command: pnpm run dev
+  # The API ships TypeScript source — tsx transpiles it at runtime, so there is
+  # no bundle to emit and no `dist` to declare. The build task is the compile gate.
   build:
-    command: bun build src/index.ts --outdir dist --target bun
+    command: pnpm run build
     deps:
       - shared:build
     inputs:
@@ -10,10 +12,8 @@ tasks:
       - package.json
       - tsconfig.json
       - drizzle.config.ts
-    outputs:
-      - dist
   typecheck:
-    command: bun run typecheck
+    command: pnpm run typecheck
     deps:
       - shared:typecheck
     inputs:

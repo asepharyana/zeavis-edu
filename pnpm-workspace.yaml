@@ -1,0 +1,14 @@
+# pnpm workspace for the ZeaVis Edu monorepo.
+#
+# Replaces the `workspaces` array bun read from package.json; pnpm ignores that
+# field. Globs are identical, so the dependency graph is unchanged.
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# Lifecycle scripts pnpm blocks by default. Both are required at runtime:
+#   esbuild - platform binary tsx uses to transpile the TypeScript sources.
+#   sharp   - native image processing behind the upload endpoints.
+onlyBuiltDependencies:
+  - esbuild
+  - sharp

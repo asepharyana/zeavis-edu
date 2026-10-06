@@ -106,7 +106,7 @@ function ChartCard({ title, data, color, unit = "", domain, valueFormatter }: {
             <XAxis dataKey="time" tick={{ fontSize: 9 }} hide />
             <YAxis domain={domain ?? ["auto", "auto"]} tick={{ fontSize: 9 }} unit={unit} />
             <Tooltip
-              labelFormatter={(v) => new Date(v).toLocaleTimeString()}
+              labelFormatter={(v) => new Date(String(v)).toLocaleTimeString()}
               formatter={(val: unknown) => {
                 const v = typeof val === "number" ? val : 0;
                 return [valueFormatter ? valueFormatter(v) : v.toFixed(2), title];

@@ -14,17 +14,17 @@
 SHELL := /bin/bash
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Application (Bun / Moon)
+# Application (pnpm / Moon)
 # ──────────────────────────────────────────────────────────────────────────────
 
 dev:
-	bun run dev
+	pnpm run dev
 
 build:
-	bun run build
+	pnpm run build
 
 typecheck:
-	bun run typecheck
+	pnpm run typecheck
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Telemetry Stack
@@ -144,7 +144,7 @@ telemetry-status:
 
 # Start everything (app + telemetry)
 up-all: telemetry-up
-	bun run dev
+	pnpm run dev
 
 # Stop everything
 down-all: telemetry-down
