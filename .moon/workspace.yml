@@ -1,3 +1,10 @@
+# moon's built-in default for `vcs.defaultBranch` is `master`. GitHub Actions
+# exports CI=true, which makes moon auto-enable affected checks, so it runs
+# `git merge-base master HEAD` — and this repo's default branch is `main`, so
+# that command exits 128 and the job dies before any task runs.
+vcs:
+  defaultBranch: main
+
 projects:
   web: apps/web
   api: apps/api
