@@ -59,12 +59,8 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        # zeavis-ml-service is intentionally absent: it is a Rust/onnx binary
-        # whose launcher (/opt/zeavis-ml-service/bin/zeavis-ml-service) still
-        # points at a deleted /nix/store path, so it cannot be restarted, let
-        # alone rebuilt, from this pnpm tree. Re-add it only once that binary is
-        # produced by a cargo build and shipped separately.
-        service: [api, web]
+        # zeavis-ml-service: built on the VPS in the release checkout via cargo build --locked --release; the launcher is shipped from scripts/ml-launcher.sh.
+        service: [api, web, ml]
     steps:
       - name: Checkout
         uses: actions/checkout@v7

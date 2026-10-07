@@ -14,10 +14,11 @@
 #   api  -> /opt/zeavis-api/current   (launcher does `cd $current` then runs
 #                                      `./apps/api/node_modules/.bin/tsx`)
 #   web  -> /opt/zeavis-web/html      (nginx `root` in /etc/nginx/zeavis-web)
-#
-# zeavis-ml-service is deliberately NOT accepted below: it is a Rust/onnx binary
-# whose launcher still points at a deleted /nix/store path. It cannot be built
-# from this pnpm tree — see the comment in .github/workflows/deploy.yml.
+#   ml   -> /opt/zeavis-ml-service/current (systemd unit zeavis-ml-service).
+#           Built IN PLACE on the VPS via `cargo build --locked --release` so
+#           glibc always matches; the launcher ships from scripts/ml-launcher.sh
+#           and execs the release binary with MODEL_PATH pointing at the
+#           release's Machine_Learning/model/model.onnx.
 #
 # Flow (per service):
 #   1. clone <git-sha> into $RELEASES_DIR/<git-sha>
@@ -42,7 +43,7 @@ die() { printf '[deploy] ERROR: %s\n' "$*" >&2; exit 1; }
 SERVICE="${1:-}"
 SHA="${2:-}"
 REF="${3:-main}"
-[ -n "$SHA" ] || die "usage: $0 <api|web> <git-sha> [ref]"
+[ -n "$SHA" ] || die "usage: $0 <api|web|ml> <git-sha> [ref]"
 
 case "$SERVICE" in
   api)
@@ -59,8 +60,15 @@ case "$SERVICE" in
     UNIT="zeavis-web"
     HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:4011/}"
     ;;
+  ml)
+    BASE_DIR="${BASE_DIR:-/opt/zeavis-ml-service}"
+    LIVE_LINK="$BASE_DIR/current"
+    ARTIFACT=""                          # whole checkout is the payload
+    UNIT="zeavis-ml-service"
+    HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:4012/health}"
+    ;;
   *)
-    die "unsupported service '$SERVICE' (only api and web are deployable)"
+    die "unsupported service '$SERVICE' (only api, web, and ml are deployable)"
     ;;
 esac
 
@@ -102,6 +110,25 @@ command -v git   >/dev/null 2>&1 || die "git not found on PATH"
 command -v curl  >/dev/null 2>&1 || die "curl not found on PATH"
 log "node $(node -v) | $($PNPM --version 2>/dev/null || echo 'pnpm ?') | user $(id -un) | service $SERVICE"
 
+# ml deploys build the Rust binary on the VPS so it matches the host glibc
+# exactly (the GitHub runner is never the build host). Resolve cargo like pnpm:
+# PATH, then the usual rustup homes.
+resolve_cargo() {
+  if command -v cargo >/dev/null 2>&1; then
+    command -v cargo
+  elif [ -x "${HOME:-/nonexistent}/.cargo/bin/cargo" ]; then
+    printf '%s\n' "${HOME}/.cargo/bin/cargo"
+  elif [ -x /root/.cargo/bin/cargo ]; then
+    printf '%s\n' /root/.cargo/bin/cargo
+  else
+    die "cargo not found on PATH (ml deploy builds in place)"
+  fi
+}
+if [ "$SERVICE" = "ml" ]; then
+  CARGO="$(resolve_cargo)"
+  log "cargo: $("$CARGO" --version 2>/dev/null || echo 'cargo?')"
+fi
+
 # ── state captured before we touch anything ────────────────────────────────
 PREV_TARGET=""
 if [ -L "$LIVE_LINK" ]; then
@@ -124,6 +151,11 @@ rollback() {
     as_root ln -sfn "$PREV_TARGET" "$tmp" && as_root mv -Tf "$tmp" "$LIVE_LINK"
   else
     log "no previous release to restore (nothing to roll back to)"
+  fi
+  if [ "$SERVICE" = "ml" ] && [ -f "$BASE_DIR/bin/zeavis-ml-service.pre" ]; then
+    log "restoring previous launcher"
+    as_root cp -af "$BASE_DIR/bin/zeavis-ml-service.pre" "$BASE_DIR/bin/zeavis-ml-service"
+    as_root rm -f "$BASE_DIR/bin/zeavis-ml-service.pre"
   fi
   if [ "$SKIP_RESTART" != "1" ]; then
     as_root systemctl restart "$UNIT"
@@ -198,29 +230,43 @@ fi
 # ── 2. install (+ build for web) ───────────────────────────────────────────
 # NODE_ENV must NOT be production here: pnpm would then skip devDependencies
 # (typescript, tsx, vite, @moonrepo/cli) and the build/start would fail.
-(
-  cd "$RELEASE_DIR"
-  unset NODE_ENV
-  log "pnpm install --frozen-lockfile"
-  $PNPM install --frozen-lockfile
+if [ "$SERVICE" = "ml" ]; then
+  (
+    cd "$RELEASE_DIR/apps/ml-service"
+    log "cargo build --locked --release"
+    "$CARGO" build --locked --release
+  )
+else
+  (
+    cd "$RELEASE_DIR"
+    unset NODE_ENV
+    log "pnpm install --frozen-lockfile"
+    $PNPM install --frozen-lockfile
 
-  if [ "$SERVICE" = "web" ]; then
-    log "pnpm run build"
-    $PNPM run build
-  else
-    # The API imports @zeavis/shared at runtime (isDiseaseSlug, createAppStatus,
-    # DiagnosisStatus, getDiseaseBySlug) and that package's `exports` point at
-    # packages/shared/dist, which a fresh clone does not contain.
-    log "pnpm --filter @zeavis/shared build"
-    $PNPM --filter @zeavis/shared build
-  fi
-)
+    if [ "$SERVICE" = "web" ]; then
+      log "pnpm run build"
+      $PNPM run build
+    else
+      # The API imports @zeavis/shared at runtime (isDiseaseSlug, createAppStatus,
+      # DiagnosisStatus, getDiseaseBySlug) and that package's `exports` point at
+      # packages/shared/dist, which a fresh clone does not contain.
+      log "pnpm --filter @zeavis/shared build"
+      $PNPM --filter @zeavis/shared build
+    fi
+  )
+fi
 
 # $TARGET is what the live path will point at: the built SPA for web, the whole
 # checkout for api (the launcher `cd`s into it and runs apps/api/.../tsx).
 if [ -n "$ARTIFACT" ]; then
   TARGET="$RELEASE_DIR/$ARTIFACT"
   [ -f "$TARGET/index.html" ] || die "build produced no $TARGET/index.html"
+elif [ "$SERVICE" = "ml" ]; then
+  TARGET="$RELEASE_DIR"
+  [ -x "$TARGET/apps/ml-service/target/release/zeavis-ml-service" ] \
+    || die "cargo build did not produce apps/ml-service/target/release/zeavis-ml-service"
+  [ -f "$TARGET/Machine_Learning/model/model.onnx" ] \
+    || die "model.onnx missing from the release payload"
 else
   TARGET="$RELEASE_DIR"
   [ -x "$TARGET/apps/api/node_modules/.bin/tsx" ] \
@@ -256,11 +302,28 @@ fi
 if [ -n "$ARTIFACT" ]; then
   # web: the live path points at <release>/apps/web/dist (no package.json there)
   [ -e "$LIVE_LINK/index.html" ] || die "$LIVE_LINK does not point at a built SPA"
+elif [ "$SERVICE" = "ml" ]; then
+  # ml: the live path is the release root carrying the built binary + model
+  [ -e "$LIVE_LINK/apps/ml-service/target/release/zeavis-ml-service" ] \
+    || die "$LIVE_LINK does not point at a built ml release"
+  [ -e "$LIVE_LINK/Machine_Learning/model/model.onnx" ] \
+    || die "$LIVE_LINK does not carry the ONNX model"
 else
   # api: the launcher `cd`s into this path, so it must be a checkout
   [ -e "$LIVE_LINK/package.json" ] || die "$LIVE_LINK does not point at a release"
 fi
 ACTIVATED=1
+
+# ml ships its launcher from THIS commit so ExecStart always matches the payload
+# being activated. The previous launcher is kept as .pre for rollback.
+if [ "$SERVICE" = "ml" ]; then
+  if [ -f "$BASE_DIR/bin/zeavis-ml-service" ]; then
+    as_root cp -a "$BASE_DIR/bin/zeavis-ml-service" "$BASE_DIR/bin/zeavis-ml-service.pre"
+  fi
+  log "installing launcher $BASE_DIR/bin/zeavis-ml-service"
+  as_root cp "$RELEASE_DIR/scripts/ml-launcher.sh" "$BASE_DIR/bin/zeavis-ml-service"
+  as_root chmod 755 "$BASE_DIR/bin/zeavis-ml-service"
+fi
 
 # ── 4. restart ─────────────────────────────────────────────────────────────
 if [ "$SKIP_RESTART" = "1" ]; then
