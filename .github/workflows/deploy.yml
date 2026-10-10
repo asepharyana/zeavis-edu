@@ -59,7 +59,9 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        # zeavis-ml-service: built on the VPS in the release checkout via cargo build --locked --release; the launcher is shipped from scripts/ml-launcher.sh.
+        # zeavis-ml-service: the Rust binary is COMPILED HERE (see the
+        # build-ml-payload job) and shipped as an artifact, so the release is
+        # the payload — binary + model.onnx — instead of a 650MB cargo target/.
         service: [api, web, ml]
     steps:
       - name: Checkout
@@ -68,6 +70,45 @@ jobs:
           fetch-depth: 0
           submodules: false
 
+      - name: Setup Rust toolchain
+        if: matrix.service == 'ml'
+        run: |
+          rustup toolchain install stable --profile minimal --no-self-update
+          rustup default stable
+
+      - uses: Swatinem/rust-cache@v2
+        if: matrix.service == 'ml'
+        with:
+          workspaces: apps/ml-service
+
+      # Compile the ml binary on the runner and ship it, so the VPS neither
+      # needs cargo nor keeps a target/ in the release. /opt/zeavis-ml-service
+      # was 707M per release for a 30M binary: 647M was
+      # apps/ml-service/target, 619M of that deps/ — intermediate rlib/rmeta the
+      # runtime never loads. Dropping target/ is safe because ldd lists only
+      # libc/libstdc++/libgcc/libm (ort's onnxruntime is statically linked in)
+      # and /proc/<pid>/maps for the running service shows exactly one file from
+      # the release, the binary.
+      #
+      # glibc direction is safe: the host is Ubuntu 26.04 (2.43), ubuntu-latest
+      # is 24.04 (2.39), and glibc is backward compatible.
+      - name: Build ml-service binary
+        if: matrix.service == 'ml'
+        run: |
+          set -euo pipefail
+          cargo build --locked --release --manifest-path apps/ml-service/Cargo.toml
+          BIN=apps/ml-service/target/release/zeavis-ml-service
+          test -x "$BIN"
+          # Fail here, on the runner, rather than as an execve error after the
+          # symlink flip, if this binary cannot run on the production OS.
+          ldd "$BIN"
+          mkdir -p /tmp/zeavis-ml-payload
+          cp "$BIN" /tmp/zeavis-ml-payload/zeavis-ml-service
+          # Read at runtime through MODEL_PATH, so it must travel too.
+          cp Machine_Learning/model/model.onnx /tmp/zeavis-ml-payload/model.onnx
+          # Artifact mode has no checkout on the VPS, so the launcher ships in
+          # the payload as well.
+          cp scripts/ml-launcher.sh /tmp/zeavis-ml-payload/ml-launcher.sh
 
       - name: Setup SSH key
         env:
@@ -80,10 +121,18 @@ jobs:
           ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null 2>&1 || { echo "SSH key invalid"; exit 1; }
           ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
+      - name: Upload ml payload to VPS
+        if: matrix.service == 'ml'
+        run: |
+          ssh -o BatchMode=yes "$VPS_USER@$VPS_HOST" 'rm -rf /tmp/zeavis-ml-payload && mkdir -p /tmp/zeavis-ml-payload'
+          scp -o BatchMode=yes -r /tmp/zeavis-ml-payload/. "$VPS_USER@$VPS_HOST:/tmp/zeavis-ml-payload/"
+          ssh -o BatchMode=yes "$VPS_USER@$VPS_HOST" 'chmod 0755 /tmp/zeavis-ml-payload/zeavis-ml-service'
+
       # The script is shipped from THIS checkout so the deploy logic always
       # matches the commit being released, then runs on the box: clone the sha,
       # pnpm install --frozen-lockfile, atomically flip the live path, restart
-      # the unit, health-check, and roll back if the check fails.
+      # the unit, health-check, and roll back if the check fails. For ml the
+      # clone and build are skipped because ARTIFACT_DIR carries the payload.
       - name: Copy deploy script to VPS
         run: scp -o BatchMode=yes scripts/deploy-direct.sh "$VPS_USER@$VPS_HOST:/tmp/zeavis-deploy-direct.sh"
 
@@ -93,7 +142,7 @@ jobs:
           DEPLOY_REF: ${{ github.ref_name }}
         run: |
           ssh -o BatchMode=yes "$VPS_USER@$VPS_HOST" \
-            "bash /tmp/zeavis-deploy-direct.sh '${{ matrix.service }}' '$DEPLOY_SHA' '$DEPLOY_REF'"
+            "ARTIFACT_DIR=/tmp/zeavis-ml-payload bash /tmp/zeavis-deploy-direct.sh '${{ matrix.service }}' '$DEPLOY_SHA' '$DEPLOY_REF'"
 
       - name: Journal on failure
         if: failure()
