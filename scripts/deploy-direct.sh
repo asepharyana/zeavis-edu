@@ -460,13 +460,22 @@ fi
 # KEEP_RELEASES is a TOTAL including the live release: keep the live one, then
 # the newest KEEP_RELEASES-1 of the rest. Counting only the old ones (as this
 # used to) kept live plus N, one more than asked for.
-live_target="$(readlink "$LIVE_LINK")"
+# Compare BASENAMES, not paths: readlink yields no trailing slash while
+# ls -1dt yields one, so the old path comparison never matched and the guard
+# meant to spare the live release never fired.
+live_target="$(readlink -f "$LIVE_LINK")"
+live_name="$(basename "$live_target")"
 log "pruning old releases (keeping live + $((KEEP_RELEASES - 1)) rollback)"
 kept=0
 while IFS= read -r dir; do
   [ -n "$dir" ] || continue
-  [ "$dir" = "$live_target" ] && continue
-  [ "$dir" = "$RELEASE_DIR" ] && continue
+  # Compare BASENAMES: readlink emits no trailing slash while ls -1dt emits
+  # one, so the old path comparison never matched and the guard meant to spare
+  # the live release never fired. This also covers the release just deployed,
+  # which IS the live one — skipping it by name without counting it is what made
+  # the effective budget KEEP_RELEASES+1.
+  name="$(basename "$dir")"
+  [ "$name" = "$live_name" ] && continue
   kept=$((kept + 1))
   if [ "$kept" -le "$((KEEP_RELEASES - 1))" ]; then
     log "  keeping: $(basename "$dir")"

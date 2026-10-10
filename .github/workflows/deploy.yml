@@ -51,6 +51,13 @@ jobs:
       - name: Test
         run: pnpm test
 
+      # Both release-prune bugs were invisible in normal operation: the N+1
+      # budget only shows as one extra directory, and the live-release guard
+      # only fails when `current` points at something other than the newest
+      # release. The fixture points it at the OLDEST so the guard is exercised.
+      - name: Check the release-cap block
+        run: bash scripts/tests/prune-release-cap.sh scripts/deploy-direct.sh
+
   build-and-deploy:
     needs: test
     runs-on: ubuntu-latest
