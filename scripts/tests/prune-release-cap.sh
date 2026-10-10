@@ -48,6 +48,14 @@ check() {
 
 echo "=== fixture: 4 releases, current -> the OLDEST, cap 2 (live + 1 rollback)"
 mkdir -p "$WORK/releases"/{aaa_oldest,bbb_mid,ccc_new,d_newest}
+# Distinct, descending mtimes: aaa_oldest oldest, d_newest newest. `ls -t`
+# breaks ties by directory order, and all four are created in the same second,
+# so without this the "newest" is whatever the filesystem hands back — which is
+# why the assertion passed locally and failed on the runner.
+touch -d '4 hours ago' "$WORK/releases/aaa_oldest"
+touch -d '3 hours ago' "$WORK/releases/bbb_mid"
+touch -d '2 hours ago' "$WORK/releases/ccc_new"
+touch -d '1 hour  ago' "$WORK/releases/d_newest"
 ln -sfn "$WORK/releases/aaa_oldest" "$WORK/current"
 
 # Stubs for the script's helpers and variables the block closes over. Without
@@ -63,7 +71,11 @@ RELEASES_DIR="$WORK/releases" LIVE_LINK="$WORK/current" \
 sed 's/^/  /' "$WORK/log"
 
 check "survivors"  "$(ls -1d "$WORK/releases"/*/ 2>/dev/null | wc -l)" 2
+# Must test the TARGET, not the symlink: `ln -sfn` leaves a dangling link, and
+# `[ -d link/ ]` is still true for one, so a pruned live release would pass.
 check "live kept"  "$([ -d "$WORK/current/" ] && echo yes || echo no)"   yes
+check "live target intact" \
+  "$([ -d "$WORK/releases/aaa_oldest" ] && echo yes || echo no)"        yes
 check "rollback is newest" \
   "$(ls -1 "$WORK/releases" | tr '\n' ' ')" "aaa_oldest d_newest "
 
