@@ -1,3 +1,10 @@
+## [0.2.2](https://github.com/asepharyana/zeavis-edu/compare/v0.2.1...v0.2.2) (2026-10-14)
+
+
+### Bug Fixes
+
+* **ci:** cap the release body, which GitHub limits to 125,000 chars ([015c77e](https://github.com/asepharyana/zeavis-edu/commit/015c77e6fb5e77f0000f8e45a983babdc8de1f9f))
+
 ## [0.2.1](https://github.com/asepharyana/zeavis-edu/compare/v0.2.0...v0.2.1) (2026-10-14)
 
 
