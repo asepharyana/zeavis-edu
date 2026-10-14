@@ -1,3 +1,10 @@
+## [0.2.6](https://github.com/asepharyana/zeavis-edu/compare/v0.2.5...v0.2.6) (2026-10-14)
+
+
+### Bug Fixes
+
+* **ci:** flatten build_args in prepare, where the JSON is still intact ([e1e707b](https://github.com/asepharyana/zeavis-edu/commit/e1e707b64b885a960eecbee8b86da96ad21c1269))
+
 ## [0.2.5](https://github.com/asepharyana/zeavis-edu/compare/v0.2.4...v0.2.5) (2026-10-14)
 
 
