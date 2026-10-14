@@ -1,0 +1,19 @@
+{
+  "images": [
+    {
+      "package": "zeavis-api",
+      "context": ".",
+      "file": "apps/api/Dockerfile"
+    },
+    {
+      "package": "zeavis-web",
+      "context": ".",
+      "file": "apps/web/Dockerfile"
+    },
+    {
+      "package": "zeavis-ml-service",
+      "context": ".",
+      "file": "apps/ml-service/Dockerfile"
+    }
+  ]
+}
