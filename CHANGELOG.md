@@ -1,3 +1,10 @@
+## [0.2.1](https://github.com/asepharyana/zeavis-edu/compare/v0.2.0...v0.2.1) (2026-10-14)
+
+
+### Bug Fixes
+
+* **ci:** stop embedding the release notes in the release commit ([2ce808e](https://github.com/asepharyana/zeavis-edu/commit/2ce808e7608e22dde0980f0b9b269df384a802af))
+
 # [0.2.0](https://github.com/asepharyana/zeavis-edu/compare/v0.1.32...v0.2.0) (2026-10-14)
 
 
