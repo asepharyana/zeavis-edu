@@ -1,3 +1,10 @@
+## [0.2.4](https://github.com/asepharyana/zeavis-edu/compare/v0.2.3...v0.2.4) (2026-10-14)
+
+
+### Bug Fixes
+
+* **ci:** make build_args in docker-images.json actually reach the build ([2dee2ef](https://github.com/asepharyana/zeavis-edu/commit/2dee2ef26e1f9563a14af5a47032efcb13357fc5))
+
 ## [0.2.3](https://github.com/asepharyana/zeavis-edu/compare/v0.2.2...v0.2.3) (2026-10-14)
 
 
