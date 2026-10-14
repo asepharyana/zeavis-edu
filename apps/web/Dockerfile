@@ -50,7 +50,7 @@ RUN pnpm --filter @zeavis/shared build
 RUN pnpm --filter @zeavis/web build
 
 # ── runner: nginx ─────────────────────────────────────────────────────────
-# Alpine's nginx package is built --with-http-sub-filter, which the SPA config
+# nginx: alpine's package is built --with-http-sub-filter, which the SPA config
 # relies on for asset rewriting. Swapping this base for a hand-built nginx
 # silently loses sub_filter and the app still serves, with broken assets.
 FROM alpine:3.20 AS runner
@@ -58,6 +58,24 @@ RUN apk add --no-cache nginx
 
 COPY apps/web/nginx.conf /etc/nginx/http.d/default.conf
 COPY --from=builder /app/apps/web/dist /var/lib/nginx/html
+
+# Resolve the API hostname LAZILY.
+#
+# nginx resolves `proxy_pass` upstreams at startup, so with `zeavis-api` not yet
+# on the network it aborts before serving a single byte:
+#   nginx: [emerg] host not found in upstream "zeavis-api"
+# That makes the image order-dependent: it only boots if the api container
+# happens to exist first, and on a fresh `docker compose up` it may not. A
+# variable in proxy_pass defers resolution to request time, so nginx starts
+# regardless and the failure becomes a 502 only for requests that actually need
+# the api. nginx.conf already routes these through $api_upstream.
+# `set` is a server/location-level directive, not http-level: putting it here
+# fails with
+#   nginx: [emerg] "set" directive is not allowed here in
+#     /etc/nginx/http.d/00-upstream.conf:2
+# so it lives in nginx.conf's server block and only the resolver is injected.
+RUN echo 'resolver 127.0.0.11 valid=10s ipv6=off;' \
+    > /etc/nginx/http.d/00-upstream.conf
 
 # nginx's master process needs to bind :80, so it cannot be fully unprivileged
 # without also rewriting its own listen directives and pid path. The content it
