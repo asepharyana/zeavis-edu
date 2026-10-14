@@ -123,10 +123,26 @@ jobs:
             exit 1
           fi
 
-          # The image list is repo config, not a hardcoded matrix, so adding a
-          # service is a one-line change rather than a workflow edit that can
-          # conflict with whatever else is in flight.
-          images=$(jq -c '.images | map(select(.enabled != false))' .github/docker-images.json)
+          # Normalise build_args HERE, in prepare, not in the publish job.
+          #
+          # docker/build-push-action parses `build-args` as newline-separated
+          # KEY=VALUE. A JSON object is accepted and handed through literally,
+          # so every ARG resolves EMPTY and the build still succeeds.
+          #
+          # It has to happen here rather than in a step of the publish job:
+          # `toJSON()` pretty-prints, and GitHub renders a multi-line env value
+          # verbatim into the step's env block, so the value never arrives as the
+          # single token a step could split. Passing it through the matrix keeps
+          # it intact — newlines included, which is the format wanted here.
+          images=$(jq -c '
+            .images
+            | map(select(.enabled != false))
+            | map(
+                if (.build_args | type) == "object" then
+                  .build_args = ([.build_args | to_entries[] | "\(.key)=\(.value)"] | join("\n"))
+                else . end
+              )
+          ' .github/docker-images.json)
           if [[ "$(jq 'length' <<<"$images")" -eq 0 ]]; then
             echo "::error::.github/docker-images.json enables no images"
             exit 1
@@ -200,40 +216,6 @@ jobs:
           set -Eeuo pipefail
           echo "$PREBUILD" | bash -euxo pipefail
 
-      # Normalise matrix.image.build_args into the KEY=VALUE list this action
-      # parses. Object form is joined; string form is passed through.
-      - name: Normalise build args
-        id: buildargs
-        env:
-          # join(toJSON(...), '') is the compact form on purpose. GitHub renders
-          # a multi-line value into the step's env block verbatim, and the
-          # resulting RAW spans several lines — jq still parses it, but the
-          # value is no longer a single token, and that is not worth debugging
-          # twice. Compact in, compact out.
-          RAW: ${{ join(toJSON(matrix.image.build_args || ''), '') }}
-        run: |
-          set -Eeuo pipefail
-          # A repo that declares no build_args yields the literal '""' from
-          # toJSON(), which is not empty — comparing against it is what stops
-          # that quoting artefact being forwarded as a build arg.
-          if [ -z "$RAW" ] || [ "$RAW" = '""' ]; then
-            # The key is the step's output NAME (`args`), so the line must read
-            # `args=`. Writing `args =` or omitting the name would define an
-            # output downstream never reads, and build-args would silently be
-            # empty — the same failure this step exists to prevent.
-            echo "args=" >> "$GITHUB_OUTPUT"; exit 0
-          fi
-          if jq -e 'type == "object"' >/dev/null 2>&1 <<<"$RAW"; then
-            jq -r 'to_entries[] | "\(.key)=\(.value)"' <<<"$RAW" >> "$GITHUB_OUTPUT"
-            echo "" >> "$GITHUB_OUTPUT"
-          else
-            printf '%s\n' "$RAW" >> "$GITHUB_OUTPUT"
-          fi
-          # Report what was actually resolved. Without this the step is silent
-          # on success, so a build-arg that never reaches the build looks
-          # identical to a Dockerfile that ignored it.
-          echo "resolved build-args: [$(tr '\n' ' ' <"$GITHUB_OUTPUT")]"
-
       - uses: docker/setup-buildx-action@v3
 
       # The default GITHUB_TOKEN is scoped to this repo's packages and is all a
@@ -262,7 +244,7 @@ jobs:
           # passed through literally, so every ARG resolves EMPTY and the build
           # still succeeds — a green run that configured nothing. Normalising
           # both shapes above is what stops that silent failure.
-          build-args: ${{ steps.buildargs.outputs.args }}
+          build-args: ${{ matrix.image.build_args || '' }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
