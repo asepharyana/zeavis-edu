@@ -1,3 +1,10 @@
+## [0.2.5](https://github.com/asepharyana/zeavis-edu/compare/v0.2.4...v0.2.5) (2026-10-14)
+
+
+### Bug Fixes
+
+* **ci:** collapse build_args to one token before normalising it ([f36212f](https://github.com/asepharyana/zeavis-edu/commit/f36212f08ec5c7a7fa04972d0561c8e33f18e420))
+
 ## [0.2.4](https://github.com/asepharyana/zeavis-edu/compare/v0.2.3...v0.2.4) (2026-10-14)
 
 
