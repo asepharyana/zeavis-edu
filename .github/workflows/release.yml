@@ -205,13 +205,22 @@ jobs:
       - name: Normalise build args
         id: buildargs
         env:
-          RAW: ${{ toJSON(matrix.image.build_args || '') }}
+          # join(toJSON(...), '') is the compact form on purpose. GitHub renders
+          # a multi-line value into the step's env block verbatim, and the
+          # resulting RAW spans several lines — jq still parses it, but the
+          # value is no longer a single token, and that is not worth debugging
+          # twice. Compact in, compact out.
+          RAW: ${{ join(toJSON(matrix.image.build_args || ''), '') }}
         run: |
           set -Eeuo pipefail
           # A repo that declares no build_args yields the literal '""' from
           # toJSON(), which is not empty — comparing against it is what stops
           # that quoting artefact being forwarded as a build arg.
           if [ -z "$RAW" ] || [ "$RAW" = '""' ]; then
+            # The key is the step's output NAME (`args`), so the line must read
+            # `args=`. Writing `args =` or omitting the name would define an
+            # output downstream never reads, and build-args would silently be
+            # empty — the same failure this step exists to prevent.
             echo "args=" >> "$GITHUB_OUTPUT"; exit 0
           fi
           if jq -e 'type == "object"' >/dev/null 2>&1 <<<"$RAW"; then
@@ -220,6 +229,10 @@ jobs:
           else
             printf '%s\n' "$RAW" >> "$GITHUB_OUTPUT"
           fi
+          # Report what was actually resolved. Without this the step is silent
+          # on success, so a build-arg that never reaches the build looks
+          # identical to a Dockerfile that ignored it.
+          echo "resolved build-args: [$(tr '\n' ' ' <"$GITHUB_OUTPUT")]"
 
       - uses: docker/setup-buildx-action@v3
 
