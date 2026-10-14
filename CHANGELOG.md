@@ -1,3 +1,11 @@
+## [0.2.3](https://github.com/asepharyana/zeavis-edu/compare/v0.2.2...v0.2.3) (2026-10-14)
+
+
+### Bug Fixes
+
+* **api:** make the production image resolve its own dependencies ([921f152](https://github.com/asepharyana/zeavis-edu/commit/921f152095c8535881cd424715b0636614d1a11d))
+* **web:** serve without the api container already existing ([f97cc8b](https://github.com/asepharyana/zeavis-edu/commit/f97cc8bff85157e4e89aaeaf4f4d73d6ef3f6e59))
+
 ## [0.2.2](https://github.com/asepharyana/zeavis-edu/compare/v0.2.1...v0.2.2) (2026-10-14)
 
 
