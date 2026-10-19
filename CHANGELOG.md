@@ -1,3 +1,10 @@
+## [0.2.11](https://github.com/asepharyana/zeavis-edu/compare/v0.2.10...v0.2.11) (2026-10-19)
+
+
+### Bug Fixes
+
+* auto-fix code quality [skip ci] ([195c824](https://github.com/asepharyana/zeavis-edu/commit/195c82411ab0ff5cd2bfb0dc7d3af9dd870486b9))
+
 ## [0.2.10](https://github.com/asepharyana/zeavis-edu/compare/v0.2.9...v0.2.10) (2026-10-19)
 
 
