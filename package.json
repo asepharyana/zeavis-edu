@@ -1,21 +1,26 @@
 {
   "name": "zeavis-edu",
+  "version": "0.2.13",
   "private": true,
+  "description": "ZeaVis Edu monorepo: React web app, Elysia API, and Rust ONNX inference service for corn leaf disease classification.",
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": ">=22.15.0",
+    "pnpm": ">=10.0.0"
+  },
   "scripts": {
     "dev": "moon run :dev",
     "build": "moon run shared:build api:build web:build",
     "test": "pnpm --filter @zeavis/api test",
     "typecheck": "moon run :typecheck"
   },
-  "packageManager": "pnpm@10.33.2",
-  "devDependencies": {
-    "@moonrepo/cli": "^2.6.2",
-    "typescript": "^7.0.2"
-  },
   "dependencies": {
     "@tauri-apps/api": "2.12.4",
     "@tauri-apps/plugin-deep-link": "2.6.2",
     "@tauri-apps/plugin-opener": "2.7.2"
   },
-  "version": "0.2.13"
+  "devDependencies": {
+    "@moonrepo/cli": "^2.6.3",
+    "typescript": "^7.0.2"
+  }
 }

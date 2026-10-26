@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "description": "ZeaVis Edu web application frontend",
+  "engines": {
+    "node": ">=22.15.0"
+  },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --project tsconfig.json && vite build",
@@ -35,7 +38,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "postcss": "^8.5.31",
     "typescript": "^7.0.2",
-    "vite": "^8.3.4",
+    "vite": "^8.3.5",
     "vite-tsconfig-paths": "^6.1.1"
   }
 }
