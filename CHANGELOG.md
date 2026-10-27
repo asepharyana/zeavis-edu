@@ -1,3 +1,5 @@
+## [0.2.15](https://github.com/asepharyana/zeavis-edu/compare/v0.2.14...v0.2.15) (2026-10-27)
+
 ## [0.2.14](https://github.com/asepharyana/zeavis-edu/compare/v0.2.13...v0.2.14) (2026-10-26)
 
 
