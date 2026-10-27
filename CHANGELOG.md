@@ -1,3 +1,10 @@
+## [0.2.16](https://github.com/asepharyana/zeavis-edu/compare/v0.2.15...v0.2.16) (2026-10-27)
+
+
+### Bug Fixes
+
+* **deps:** move @moonrepo/cli to 2.6.4 ([f303a1d](https://github.com/asepharyana/zeavis-edu/commit/f303a1d3316f58d23afd9ee8d28aadd38e55f9a9))
+
 ## [0.2.15](https://github.com/asepharyana/zeavis-edu/compare/v0.2.14...v0.2.15) (2026-10-27)
 
 ## [0.2.14](https://github.com/asepharyana/zeavis-edu/compare/v0.2.13...v0.2.14) (2026-10-26)

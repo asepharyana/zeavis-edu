@@ -1,6 +1,6 @@
 {
   "name": "zeavis-edu",
-  "version": "0.2.15",
+  "version": "0.2.16",
   "private": true,
   "description": "ZeaVis Edu monorepo: React web app, Elysia API, and Rust ONNX inference service for corn leaf disease classification.",
   "packageManager": "pnpm@10.33.2",
