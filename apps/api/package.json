@@ -24,7 +24,7 @@
     "@opentelemetry/exporter-prometheus": "^0.300.0",
     "@opentelemetry/instrumentation-http": "^0.300.0",
     "@opentelemetry/sdk-node": "^0.300.0",
-    "@opentelemetry/semantic-conventions": "^1.43.0",
+    "@opentelemetry/semantic-conventions": "^1.44.0",
     "@zeavis/shared": "workspace:*",
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.4",
