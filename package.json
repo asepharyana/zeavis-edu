@@ -20,7 +20,7 @@
     "@tauri-apps/plugin-opener": "2.7.2"
   },
   "devDependencies": {
-    "@moonrepo/cli": "^2.6.4",
+    "@moonrepo/cli": "^2.6.5",
     "typescript": "^7.0.2"
   }
 }
